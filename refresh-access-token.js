@@ -75,14 +75,14 @@ const callAPI = () => {
 
                 responses.forEach(response => {
 
-                    console.log("response", response.data);
-
                     const now = new Date();
                     const second = now.getTime();
                     const access_token = response.data.access_token;
                     const expires_in = response.data.expires_in;
                     const expires_in_time = dateformat(second + (expires_in * 1000),'yyyy-mm-dd HH:MM:ss');
                     const app_id = response.data.app_id;
+
+                    console.log(`app_id: ${app_id} / access_token : ${access_token} / expires_in : ${expires_in_time}`);
 
                     execute(`UPDATE app_paypal_sync
                             SET access_token="${access_token}",
@@ -92,7 +92,8 @@ const callAPI = () => {
                             `,
                         (err, rows) => {
                             if(err) throw err;
-                            closing();
+                            resolve(true);
+
                         })
                 });
 
@@ -107,9 +108,18 @@ const callAPI = () => {
 
 const worker = async() => {
 
+    console.log('=====================================================================');
+    console.log(new Date() + ' 시작');
+
     try {
         await getAccount();
-        await callAPI();
+        const bool = await callAPI();
+        if ( bool ) {
+            closing();
+            console.log(new Date() + ' 종료');
+            console.log('=====================================================================');
+        }
+
     } catch(error){
         console.log(error)
     }
