@@ -92,8 +92,8 @@ const callAPI = () => {
                             `,
                         (err, rows) => {
                             if(err) throw err;
-                            resolve(true);
-
+                            closing();
+                            resolve();
                         })
                 });
 
@@ -113,12 +113,10 @@ const worker = async() => {
 
     try {
         await getAccount();
-        const bool = await callAPI();
-        if ( bool ) {
-            closing();
-            console.log(new Date() + ' 종료');
-            console.log('=====================================================================');
-        }
+        await callAPI();
+   
+        console.log(new Date() + ' 종료');
+        console.log('=====================================================================');
 
     } catch(error){
         console.log(error)
