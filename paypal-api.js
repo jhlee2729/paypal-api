@@ -18,7 +18,7 @@ const contents = {
 }
 
 const insertData = {
-    transaction_info:[],
+    response_data:[],
 }
 
 const execute = (sql,callback,data = {} )=>{
@@ -116,7 +116,7 @@ const getTransaction = () => {
             }).then((response) => {
 
                 // response.data.transaction_details.map(i => { 
-                //     console.log(i.transaction_info.transaction_id, i.transaction_info.transaction_updated_date )
+                //     console.log(i)
                 // })
 
                 let res_start_date = response.data.start_date;
@@ -129,7 +129,7 @@ const getTransaction = () => {
                 console.log(`total_items: ${total_items},total_pages :${total_pages}, page:${page}, ${total_pages!==page}`);
                 
                 response.data.transaction_details.map(i => {
-                    insertData.transaction_info = insertData.transaction_info.concat(i);
+                    insertData.response_data = insertData.response_data.concat(i);
                 })
 
                 if ( (total_pages !== page) && total_items !==0 ) {
@@ -137,7 +137,6 @@ const getTransaction = () => {
                     callAPI();
                     
                 } else {
-                    // console.log("length", insertData.transaction_info.length)
                     resolve(true);
                 }
                
@@ -157,33 +156,54 @@ const insertTransaction = () => {
 
         let loop = 0;
         const callAPI = () => {
-            insertData.transaction_info.length == loop ? 
+            insertData.response_data.length == loop ? 
             resolve() :
-            databaseInsert(insertData.transaction_info[loop++], callAPI);
+            databaseInsert(insertData.response_data[loop++], callAPI);
         }
-        databaseInsert(insertData.transaction_info[loop++], callAPI)
+        databaseInsert(insertData.response_data[loop++], callAPI)
 
     })
 }
 
 const databaseInsert = (data, callback) => {
 
-    let initiation_date = dateformat(new Date(data.transaction_info.transaction_initiation_date),'yyyy-mm-dd HH:MM:ss');
-    let updated_date = dateformat(new Date(data.transaction_info.transaction_updated_date),'yyyy-mm-dd HH:MM:ss');
-    
+    let transaction_initiation_date = dateformat(new Date(data.transaction_info.transaction_initiation_date),'yyyy-mm-dd HH:MM:ss');
+    let transaction_updated_date = dateformat(new Date(data.transaction_info.transaction_updated_date),'yyyy-mm-dd HH:MM:ss');
+
     const tomodel_data = {
+
+        //transaction_info
         paypal_id: syncData.paypal_id,
-        transaction_id: data.transaction_info.transaction_id,
-        transaction_event_code: data.transaction_info.transaction_event_code,
         order_number: data.transaction_info.invoice_id, 
-        initiation_date,
-        updated_date,
-        transaction_amount: Number(data.transaction_info.transaction_amount.value),
-        fee_amount:Number((data.transaction_info.hasOwnProperty('fee_amount') && data.transaction_info.fee_amount.value)) || 0,
+        paypal_account_id: data.transaction_info.paypal_account_id,
+        transaction_id: data.transaction_info.transaction_id,
+        paypal_reference_id: data.transaction_info.paypal_reference_id,
+        paypal_reference_id_type: data.transaction_info.paypal_reference_id_type,
+        transaction_event_code: data.transaction_info.transaction_event_code,
         transaction_status: data.transaction_info.transaction_status,
-        transaction_note:  data.transaction_info.transaction_note,
-        payer_email: data.payer_info.hasOwnProperty('email_address') && data.payer_info.email_address,
-        payer_name: data.payer_info.hasOwnProperty('payer_name') && data.payer_info.payer_name.alternate_full_name
+        transaction_subject: data.transaction_info.transaction_subject,
+        transaction_note: data.transaction_info.transaction_note,
+        bank_reference_id : data.transaction_info.bank_reference_id,
+        protection_eligibility : data.transaction_info.protection_eligibility,
+        instrument_type : data.transaction_info.instrument_type,
+        transaction_initiation_date,
+        transaction_updated_date,
+        transaction_amount: Number(data.transaction_info.transaction_amount.value),
+        fee_amount: Number((data.transaction_info.hasOwnProperty('fee_amount') && data.transaction_info.fee_amount.value)) || 0,
+        ending_balance: Number(data.transaction_info.tr),
+        ending_balance: Number((data.transaction_info.hasOwnProperty('ending_balance') && data.transaction_info.ending_balance.value)) || 0,
+        available_balance: Number((data.transaction_info.hasOwnProperty('available_balance') && data.transaction_info.available_balance.value)) || 0,
+
+        //payer_info
+        address_status: data.payer_info.address_status,
+        payer_status: data.payer_info.payer_status,
+        email_address: data.payer_info.hasOwnProperty('email_address') && data.payer_info.email_address || '',
+
+        given_name: data.payer_info.payer_name.hasOwnProperty('given_name') && data.payer_info.payer_name.given_name || '',
+        surname: data.payer_info.payer_name.hasOwnProperty('surname') && data.payer_info.payer_name.surname || '',
+        middle_name: data.payer_info.payer_name.hasOwnProperty('middle_name') && data.payer_info.payer_name.middle_name || '',
+        alternate_full_name: data.payer_info.hasOwnProperty('payer_name') && data.payer_info.payer_name.alternate_full_name || '',
+        country_code : data.payer_info.country_code
     }
 
     execute(`INSERT INTO app_paypal_transaction SET ?`,
@@ -213,7 +233,7 @@ const timeSave = () => {
                     "${dateformat(contents.start_date, 'yyyy-mm-dd HH:MM:ss')}",
                     "${dateformat(contents.end_date,'yyyy-mm-dd HH:MM:ss')}",
                     ${syncData.paypal_id},
-                    ${insertData.transaction_info.length}
+                    ${insertData.response_data.length}
                 )`,
                 (err,rows)=>{
                     if ( err ) {
@@ -247,7 +267,7 @@ const worker = async(sync,callback,bool) => {
     syncData.account = sync.account;
     syncData.access_token = sync.access_token;
 
-    insertData.transaction_info = [];
+    insertData.response_data = [];
 
     await lastApiHistory();
     await dateCheck();
@@ -258,7 +278,7 @@ const worker = async(sync,callback,bool) => {
         return;
     }
 
-    insertData.transaction_info.length !=0 && await insertTransaction();
+    insertData.response_data.length !=0 && await insertTransaction();
 
     await timeSave();
     await connectionClose(callback,bool);
