@@ -1,9 +1,10 @@
-const axios = require('axios');
-const dateformat = require('dateformat');
 const config = require('../config');
 const env = require('./env.json').env;
+const dateformat = require('dateformat');
 const pool = require('./connection-pool').createPool(config[env].database);
 const settingDate = config[env].setting_date;
+const axios = require('axios');
+const error_hook = require('./slackhook');
 
 const syncData = {
     paypal_id:'',
@@ -28,8 +29,11 @@ const execute = (sql,callback,data = {} )=>{
 
         connection.query(sql,data,(err,rows) => {
             connection.release();
-            if ( err ) {
-                throw err;
+            if (err) {
+                error_hook(syncData.account, err, (err, res)=> {
+                    console.log("execute", err);
+                    throw err;
+                })
             } else {
                 callback(err, rows);
             }
@@ -45,25 +49,27 @@ const lastApiHistory = () => {
 
     return new Promise((resolve,reject) => {
 
-        execute(`SELECT * FROM app_paypal_api_history\
+        execute(`SELECT * FROM app_paypal_api_history
             WHERE paypal_id = ${syncData.paypal_id}
             ORDER BY api_history_id DESC LIMIT 1`, (err,rows) => {
 
-            if (err) throw err;
-
-            if( rows.length >= 1) {
-                contents.start_date = new Date(rows[0].end_date).setHours(new Date(rows[0].end_date).getHours()-9);
-                resolve();
+            if (err) {
+                error_hook(syncData.account, err, (err, res)=> {
+                    console.log("lastApiHistory", err);
+                    throw err;
+                }) 
             } else {
-                //시간 맞춰주기 : 설정시간 - 9시간
-                contents.start_date = new Date(settingDate.start_date).setHours(new Date(settingDate.start_date).getHours()-9);
-                resolve();
-
+                if( rows.length >= 1) {
+                    contents.start_date = new Date(rows[0].end_date).setHours(new Date(rows[0].end_date).getHours()-9);
+                    resolve();
+                } else {
+                    //시간 맞춰주기 : 설정시간 - 9시간
+                    contents.start_date = new Date(settingDate.start_date).setHours(new Date(settingDate.start_date).getHours()-9);
+                    resolve();
+                }
             }
         })
-
     })
-
 }
 
 const dateCheck = () => {
@@ -81,7 +87,7 @@ const dateCheck = () => {
         console.log(`now:${contents.now}`)
         console.log(`start_date:${contents.start_date}, end:${contents.end_date}`, contents.now < contents.end_date);
 
-        if (contents.now < contents.end_date) { //설정한 end 시간이 현재시간보다 더클경우
+        if (contents.now < contents.end_date) { //설정한 end 시간이 현재 시간보다 더클경우
             contents.end_date = contents.now
         }
 
@@ -93,7 +99,7 @@ const getTransaction = () => {
 
     return new Promise((resolve,reject) => {
 
-        let page_size = 500; // limit
+        let page_size = 500;
         let page = 1;
 
         const callAPI = () => {
@@ -140,9 +146,11 @@ const getTransaction = () => {
                     resolve(true);
                 }
                
-            }).catch((err)=>{
-                console.log("err", err.response.data);
-                resolve(false);
+            }).catch((err) => {
+                error_hook(syncData.account, err, (err, res)=> {
+                    console.log("getTransaction", err);
+                    resolve(false);
+                }) 
             });
         }
 
@@ -207,9 +215,12 @@ const databaseInsert = (data, callback) => {
     }
 
     execute(`INSERT INTO app_paypal_transaction SET ?`,
-    (err,rows)=>{
-        if ( err ) {
-           throw err;
+    (err,rows) => {
+        if (err) {
+            error_hook(syncData.account, err, (err, res)=> {
+                console.log("databaseInsert", err);
+                throw err;
+            }) 
         } else {
             callback();
         }
@@ -237,7 +248,10 @@ const timeSave = () => {
                 )`,
                 (err,rows)=>{
                     if ( err ) {
-                        throw err;
+                        error_hook(syncData.account, err, (err, res)=> {
+                            console.log("databaseInsert", err);
+                            throw err;
+                        }) 
                     } else {
                         resolve();
                     }
