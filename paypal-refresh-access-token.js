@@ -58,7 +58,7 @@ const callAPI = () => {
                 method: 'POST',
                 url: 'https://api-m.paypal.com/v1/oauth2/token',
                 headers: headers,
-                data : {
+                params : {
                     grant_type: 'client_credentials'
                 }
             })
