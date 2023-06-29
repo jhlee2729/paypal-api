@@ -10,7 +10,7 @@
 #### 1-1. app_paypal_api_history 테이블의 데이터가 없는 경우
 - config.json에 설정 된 start_date를 시작날짜 기준으로 호출 시작 (시작날짜 설정)
 ```json
-"paypal_date": {
+"paypal_api": {
     "start_date":"2023-01-01 00:00:00"
 }
 ```
