@@ -5,10 +5,6 @@ const config = require('../config');
 const env = require('./env.json').env;
 const pool = require('./connection-pool').createPool(config[env].database);
 
-// 1. is_run=1인 계정 정보가져오기
-// 2. access token 발급
-// 3. app_id 기준 업데이트
-
 const authorization = [];
 
 const execute = (sql,callback,data = {} )=>{
@@ -74,7 +70,7 @@ const callAPI = () => {
             .then(responses => {
 
                 responses.forEach(response => {
-
+                    console.log("response", response)
                     const now = new Date();
                     const second = now.getTime();
                     const access_token = response.data.access_token;
