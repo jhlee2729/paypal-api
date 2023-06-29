@@ -13,5 +13,4 @@ const send = async(country, message, callback) => {
     }, callback);
 }
 
-
 module.exports = send;
