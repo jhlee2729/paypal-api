@@ -244,7 +244,8 @@ const timeSave = () => {
 const connectionClose = (callback,bool) => {
     return new Promise((resolve,reject) => {
 
-        console.log(new Date() + ' 종료');
+        console.log(`${syncData.account},${contents.start_date},${contents.end_date},${insertData.response_data.length}`);
+        console.log(new Date() + ` 종료`);
         console.log('=====================================================================');
 
         if ( bool ) {
@@ -257,7 +258,7 @@ const connectionClose = (callback,bool) => {
 const worker = async(sync,callback,bool) => {
 
     console.log('=====================================================================');
-    console.log(new Date() + ' 시작');
+    console.log(new Date() + ` 시작`);
 
     syncData.paypal_id = sync.paypal_id;
     syncData.account = sync.account;
