@@ -59,11 +59,11 @@ const lastApiHistory = () => {
                     throw err;
                 }) 
             } else {
+                //시간 맞춰주기 : 설정시간-9시간
                 if( rows.length >= 1) {
                     contents.start_date = new Date(rows[0].end_date).setHours(new Date(rows[0].end_date).getHours()-9);
                     resolve();
                 } else {
-                    //시간 맞춰주기 : 설정시간 - 9시간
                     contents.start_date = new Date(settingDate.start_date).setHours(new Date(settingDate.start_date).getHours()-9);
                     resolve();
                 }
@@ -77,15 +77,11 @@ const dateCheck = () => {
 
         // 기본 end_date = start_date + 2주
         contents.end_date = new Date(contents.start_date).setDate(new Date(contents.start_date).getDate()+14);
-        // 현재시간에서 4시간 전까지 조회 : UTC - 9시간 반영 : -13 -> end_date : 현재에서 -4시간 전까지 부르겠다는 의미임
+        // 현재시간에서 4시간 전까지 조회 : -9시간 반영 : -13 -> end_date : 현재에서 -4시간 전까지 호출하겠다는 의미
         contents.now = new Date().setHours(new Date().getHours()-13);
-
         contents.start_date = dateformat(contents.start_date, `yyyy-mm-dd'T'HH:MM:ss-0000`);
         contents.end_date = dateformat(contents.end_date, `yyyy-mm-dd'T'HH:MM:ss-0000`);
         contents.now = dateformat(contents.now, `yyyy-mm-dd'T'HH:MM:ss-0000`);
-
-        console.log(`now:${contents.now}`)
-        console.log(`start_date:${contents.start_date}, end:${contents.end_date}`, contents.now < contents.end_date);
 
         if (contents.now < contents.end_date) { //설정한 end 시간이 현재 시간보다 더클경우
             contents.end_date = contents.now
@@ -121,18 +117,8 @@ const getTransaction = () => {
           
             }).then((response) => {
 
-                // response.data.transaction_details.map(i => { 
-                //     console.log(i)
-                // })
-
-                let res_start_date = response.data.start_date;
-                let res_end_date = response.data.end_date;
                 let total_items = response.data.total_items;
                 let total_pages = response.data.total_pages;
-                
-                console.log(`호출 : ${contents.start_date}, ${contents.end_date}`)
-                console.log(`응답: ${res_start_date}, ${res_end_date}`);
-                console.log(`total_items: ${total_items},total_pages :${total_pages}, page:${page}, ${total_pages!==page}`);
                 
                 response.data.transaction_details.map(i => {
                     insertData.response_data = insertData.response_data.concat(i);
@@ -230,10 +216,6 @@ const databaseInsert = (data, callback) => {
 
 const timeSave = () => {
     return new Promise((resolve,reject) => {
-
-        // 실제 호출시간 맞추겠다
-        // contents.start_date = new Date(contents.start_date).setHours(new Date(contents.start_date).getHours()-9); 
-        // contents.end_date = new Date(contents.end_date).setHours(new Date(contents.end_date).getHours()-9); 
 
         execute(`INSERT INTO app_paypal_api_history (
                 start_date,
