@@ -1,5 +1,5 @@
 ## Paypal API - Get Transaction Search - List transactions
-### 1. refresh-access-token.js
+### 1. paypal-refresh-access-token.js
 - is_run=1인 계정 정보 가져오기
 - access-token 발급
 - app_id 기준 업데이트
