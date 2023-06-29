@@ -2,7 +2,7 @@ const config = require('../config');
 const env = require('./env.json').env;
 const dateformat = require('dateformat');
 const pool = require('./connection-pool').createPool(config[env].database);
-const settingDate = config[env].setting_date;
+const settingDate = config[env].paypal_api;
 const axios = require('axios');
 const error_hook = require('./slackhook');
 

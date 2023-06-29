@@ -69,29 +69,33 @@ const callAPI = () => {
     
             .then(responses => {
 
-                responses.forEach(response => {
-                    console.log("response", response)
+                let sql = '';
+
+                responses.map(response => {
                     const now = new Date();
                     const second = now.getTime();
                     const access_token = response.data.access_token;
                     const expires_in = response.data.expires_in;
                     const expires_in_time = dateformat(second + (expires_in * 1000),'yyyy-mm-dd HH:MM:ss');
                     const app_id = response.data.app_id;
-
+                    
                     console.log(`app_id: ${app_id} / access_token : ${access_token} / expires_in : ${expires_in_time}`);
 
-                    execute(`UPDATE app_paypal_sync
-                            SET access_token="${access_token}",
-                            expires_in=${expires_in},
-                            expires_in_time="${expires_in_time}"
-                            WHERE app_id ="${app_id}"
-                            `,
-                        (err, rows) => {
-                            if(err) throw err;
-                            closing();
-                            resolve();
-                        })
+                    sql += `UPDATE app_paypal_sync
+                    SET access_token="${access_token}",
+                    expires_in=${expires_in},
+                    expires_in_time="${expires_in_time}"
+                    WHERE app_id ="${app_id}";\n\ `;
+
                 });
+
+                execute(sql, (err,rows) => {
+                    if (err) throw err;
+                    closing();
+                    console.log(new Date() + ' 종료');
+                    console.log('=====================================================================');
+                    
+                })
 
             })
         
