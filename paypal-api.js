@@ -77,8 +77,8 @@ const dateCheck = () => {
 
         // 기본 end_date = start_date + 2주
         contents.end_date = new Date(contents.start_date).setDate(new Date(contents.start_date).getDate()+14);
-        // 현재시간에서 4시간 전까지 조회 : -9시간 반영 : -13 -> end_date : 현재에서 -4시간 전까지 호출하겠다는 의미
-        contents.now = new Date().setHours(new Date().getHours()-13);
+        // 현재시간에서 6시간 전까지 조회 : -9시간 반영 : -15 -> end_date : 현재에서 -6시간 전까지 호출하겠다는 의미
+        contents.now = new Date().setHours(new Date().getHours()-15);
         contents.start_date = dateformat(contents.start_date, `yyyy-mm-dd'T'HH:MM:ss-0000`);
         contents.end_date = dateformat(contents.end_date, `yyyy-mm-dd'T'HH:MM:ss-0000`);
         contents.now = dateformat(contents.now, `yyyy-mm-dd'T'HH:MM:ss-0000`);
