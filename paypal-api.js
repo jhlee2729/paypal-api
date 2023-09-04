@@ -62,6 +62,7 @@ const lastApiHistory = () => {
                 //시간 맞춰주기 : 설정시간-9시간
                 if( rows.length >= 1) {
                     contents.start_date = new Date(rows[0].end_date).setHours(new Date(rows[0].end_date).getHours()-9);
+                    contents.start_date = new Date(contents.start_date).setSeconds(new Date(contents.start_date).getSeconds() + 1); //end_date + 1초 더해주기
                     resolve();
                 } else {
                     contents.start_date = new Date(settingDate.start_date).setHours(new Date(settingDate.start_date).getHours()-9);
